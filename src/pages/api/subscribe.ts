@@ -13,11 +13,10 @@ type User = {
   }
 }
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+const subscribe = async (req: NextApiRequest, res: NextApiResponse) => {
   if(req.method === "POST"){
     
     const session = await getSession({ req });
-    console.log('check session', session)
     const user = await fauna.query<User>(
       q.Get(
         q.Match(
@@ -27,7 +26,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       )
     )
     
-    console.log('check user.data', user.data)
     let customerId = user.data.stripe_customer_id
 
     if(!customerId) {
@@ -64,10 +62,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       cancel_url: process.env.STRIPE_CANCEL_URL!
     })
 
-    console.log('stripeCheckoutSession.id', stripeCheckoutSession.id)
     return res.status(200).json({sessionId: stripeCheckoutSession.id})
   }else{
     res.setHeader('Allow', 'POST')
     res.status(405).end('Method not allowed')
   }
 }
+
+export default subscribe
